@@ -19,10 +19,30 @@ class Service {
     private val METHOD_CREATE_COMPTE = "createCompte"
     private val METHOD_DELETE_COMPTE = "deleteCompte"
 
-    /**
-     * Récupère la liste des comptes via le service SOAP.
-     */
-    fun getComptes(): List<Compte> {
+ 
+   
+ 
+    fun createCompte(solde: Double, type: TypeCompte): Boolean {
+        val request = SoapObject(NAMESPACE, METHOD_CREATE_COMPTE).apply {
+            addProperty("solde", solde.toString())
+            addProperty("type", type.name)
+        }
+
+        val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
+            dotNet = false
+            setOutputSoapObject(request)
+        }
+        val transport = HttpTransportSE(URL)
+
+        return try {
+            transport.call("", envelope)
+            true
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            false
+        }
+    }
+ fun getComptes(): List<Compte> {
         val request = SoapObject(NAMESPACE, METHOD_GET_COMPTES)
         val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
             dotNet = false
@@ -55,38 +75,7 @@ class Service {
         return comptesList
     }
 
-    /**
-     * Crée un nouveau compte via le service SOAP.
-     * @param solde Solde initial.
-     * @param type Type du compte.
-     * @return true si succès, false sinon.
-     */
-    fun createCompte(solde: Double, type: TypeCompte): Boolean {
-        val request = SoapObject(NAMESPACE, METHOD_CREATE_COMPTE).apply {
-            addProperty("solde", solde.toString()) // ksoap2 préfère String pour Double
-            addProperty("type", type.name)
-        }
 
-        val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
-            dotNet = false
-            setOutputSoapObject(request)
-        }
-        val transport = HttpTransportSE(URL)
-
-        return try {
-            transport.call("", envelope)
-            true
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            false
-        }
-    }
-
-    /**
-     * Supprime un compte via son ID.
-     * @param id ID du compte.
-     * @return true si succès, false sinon.
-     */
     fun deleteCompte(id: Long): Boolean {
         val request = SoapObject(NAMESPACE, METHOD_DELETE_COMPTE).apply {
             val idProp = PropertyInfo().apply {
@@ -98,8 +87,9 @@ class Service {
         }
 
         val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
-            dotNet = false
+          
             setOutputSoapObject(request)
+              dotNet = false
         }
 
         val transport = HttpTransportSE(URL)
@@ -108,7 +98,7 @@ class Service {
             transport.call("", envelope)
             envelope.response as? Boolean ?: false
         } catch (ex: Exception) {
-            ex.printStackTrace()
+ 
             false
         }
     }
